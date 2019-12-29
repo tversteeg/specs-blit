@@ -1,0 +1,10 @@
+[package]
+name = "specs-blit"
+version = "0.1.0"
+authors = ["Thomas Versteeg <thomasversteeg@gmx.com>"]
+edition = "2018"
+
+[dependencies]
+blit = {version = "0.5.6", features = []}
+specs = "0.15.1"
+anyhow = "1.0.26"
