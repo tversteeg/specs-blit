@@ -5,6 +5,7 @@ authors = ["Thomas Versteeg <thomasversteeg@gmx.com>"]
 edition = "2018"
 
 [dependencies]
-blit = {version = "0.5.6", features = []}
+blit = "0.5.7"
 specs = "0.15.1"
 anyhow = "1.0.26"
+lazy_static = "1.4.0"
