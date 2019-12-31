@@ -5,6 +5,7 @@ authors = ["Thomas Versteeg <thomasversteeg@gmx.com>"]
 edition = "2018"
 description = "2D sprite rendering extension for the Specs ECS system."
 repository = "https://github.com/tversteeg/specs-blit"
+documentation = "https://docs.rs/specs-blit"
 license = "GPL-3.0-or-later"
 keywords = ["gamedev", "ecs", "image", "sprite", "blitting"]
 categories = ["concurrency", "game-engines", "games", "rendering", "multimedia::images"]
