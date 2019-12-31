@@ -5,7 +5,11 @@ authors = ["Thomas Versteeg <thomasversteeg@gmx.com>"]
 edition = "2018"
 
 [dependencies]
-blit = "0.5.7"
-specs = "0.15.1"
 anyhow = "1.0.26"
+blit = "0.5.7"
 lazy_static = "1.4.0"
+specs = "0.15.1"
+
+[dev-dependencies]
+image = "0.22.3"
+minifb = "0.15.1"
