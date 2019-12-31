@@ -10,7 +10,7 @@ use std::time::Duration;
 const WIDTH: usize = 250;
 const HEIGHT: usize = 250;
 
-const MASK_COLOR: u32 = 0xFF00FF;
+const MASK_COLOR: u32 = 0xFF_00_FF;
 
 fn main() -> Result<()> {
     // Setup specs
@@ -46,16 +46,11 @@ fn main() -> Result<()> {
         scale: Scale::X2,
         ..WindowOptions::default()
     };
-    let mut window = Window::new(
-        "Specs Blit Example - ESC to exit & click to draw",
-        WIDTH,
-        HEIGHT,
-        options,
-    )?;
+    let mut window = Window::new("Specs Blit Example - ESC to exit", WIDTH, HEIGHT, options)?;
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
         // Update specs
-        dispatcher.dispatch(&mut world);
+        dispatcher.dispatch(&world);
 
         // Add/remove entities added in dispatch through `LazyUpdate`
         world.maintain();
