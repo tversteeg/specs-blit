@@ -15,7 +15,7 @@ All sprites are loaded onto a big array on the heap.
 let mut world = specs::World::new();
 
 // Load the blit components into the world
-world.register::<Sprite>();
+world.register::<specs_blit::Sprite>();
 
 // Add the pixel buffer as a resource so it can be accessed from the RenderSystem later
 const WIDTH: usize = 800;
@@ -40,7 +40,7 @@ world.create_entity()
 
 // Setup the dispatcher with the blit system
 let mut dispatcher = specs::DispatcherBuilder::new()
-	.with_thread_local(RenderSystem)
+	.with_thread_local(specs_blit::RenderSystem)
 	.build();
 
 // Enter the render loop that should be called every frame
