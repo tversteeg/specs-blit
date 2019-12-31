@@ -168,6 +168,7 @@ pub struct SpriteRef(pub(crate) usize);
 pub struct PixelBuffer {
     pub(crate) pixels: Vec<u32>,
     pub(crate) width: usize,
+    pub(crate) height: usize,
 }
 
 impl PixelBuffer {
@@ -176,12 +177,23 @@ impl PixelBuffer {
         Self {
             pixels: vec![0; width * height],
             width,
+            height,
         }
     }
 
     /// Get the array of pixels.
     pub fn pixels(&self) -> &Vec<u32> {
         &self.pixels
+    }
+
+    /// Get the width in pixels.
+    pub fn width(&self) -> usize {
+        self.width
+    }
+
+    /// Get the height in pixels.
+    pub fn height(&self) -> usize {
+        self.height
     }
 }
 

@@ -59,7 +59,7 @@ fn main() -> Result<()> {
         let buffer = world.read_resource::<PixelBuffer>();
         // Render the pixel buffer
         window
-            .update_with_buffer(&buffer.pixels(), WIDTH, HEIGHT)
+            .update_with_buffer(&buffer.pixels(), buffer.width(), buffer.height())
             .unwrap();
 
         // Don't use 100% CPU

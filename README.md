@@ -54,6 +54,6 @@ while render_frame() {
 	// Get the pixel buffer resource to render it
 	let buffer = world.read_resource::<specs_blit::PixelBuffer>();
 	// Render the pixel buffer
-	window.update_with_buffer(&buffer.pixels(), WIDTH, HEIGHT)?;
+	window.update_with_buffer(&buffer.pixels(), buffer.width(), buffer.height())?;
 }
 ```
