@@ -48,6 +48,8 @@
 //! }
 //! ```
 
+pub extern crate blit;
+
 use anyhow::Result;
 use blit::BlitBuffer;
 use lazy_static::lazy_static;
