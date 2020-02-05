@@ -197,6 +197,13 @@ impl PixelBuffer {
     pub fn height(&self) -> usize {
         self.height
     }
+
+    /// Set all the pixels to the passed color.
+    pub fn clear(&mut self, color: u32) {
+        for pixel in self.pixels.iter_mut() {
+            *pixel = color;
+        }
+    }
 }
 
 /// Specs system for rendering to a buffer.

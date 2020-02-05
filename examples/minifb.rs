@@ -49,6 +49,12 @@ fn main() -> Result<()> {
     let mut window = Window::new("Specs Blit Example - ESC to exit", WIDTH, HEIGHT, options)?;
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
+        {
+            // Clear the buffer
+            let mut buffer = world.write_resource::<PixelBuffer>();
+            buffer.clear(0);
+        }
+
         // Update specs
         dispatcher.dispatch(&world);
 
@@ -57,6 +63,7 @@ fn main() -> Result<()> {
 
         // Get the pixel buffer resource to render it
         let buffer = world.read_resource::<PixelBuffer>();
+
         // Render the pixel buffer
         window
             .update_with_buffer(&buffer.pixels(), buffer.width(), buffer.height())
