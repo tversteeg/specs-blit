@@ -17,10 +17,10 @@ is-it-maintained-open-issues = { repository = "tversteeg/specs-blit" }
 
 [dependencies]
 anyhow = "1.0.26"
-blit = "0.5.7"
+blit = "0.5.9"
 lazy_static = "1.4.0"
 specs = "0.15.1"
 
 [dev-dependencies]
-image = "0.22.3"
-minifb = "0.15.1"
+image = "0.23.0"
+minifb = "0.15.3"
