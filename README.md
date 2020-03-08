@@ -29,8 +29,8 @@ let sprite_ref = {
 	const MASK_COLOR: u32 = 0xFF00FF;
     let sprite = blit::blit_buffer(&img, blit::Color::from_u32(MASK_COLOR));
 
-    // Move the sprite to the render system
-    specs_blit::load(sprite)?
+    // Move the sprite to the render system with 4 rotations
+    specs_blit::load(sprite, 4)?
 };
 
 // Create a new sprite entity in the ECS system
