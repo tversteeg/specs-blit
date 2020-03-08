@@ -11,6 +11,7 @@
 //! use blit::{BlitBuffer, Color};
 //! use specs::prelude::*;
 //! use specs_blit::{load, PixelBuffer, RenderSystem, Sprite};
+//! use rotsprite::rotsprite;
 //!
 //! const WIDTH: usize = 800;
 //! const HEIGHT: usize = 800;
@@ -27,11 +28,11 @@
 //!     world.insert(PixelBuffer::new(WIDTH, HEIGHT));
 //!
 //!     let sprite_ref = {
-//!         // Create a sprite of 2 pixels
-//!         let sprite = BlitBuffer::from_buffer(&[0, MASK_COLOR], 1, Color::from_u32(MASK_COLOR));
+//!         // Create a sprite of 4 pixels
+//!         let sprite = BlitBuffer::from_buffer(&[0, MASK_COLOR, 0, 0], 2, MASK_COLOR);
 //!
 //!         // Load the sprite and get a reference
-//!         load(sprite)?
+//!         load(sprite, 1)?
 //!     };
 //!
 //!     // Create a new sprite entity in the ECS system
@@ -49,6 +50,9 @@
 //! ```
 
 pub extern crate blit;
+
+#[cfg(feature = "rotation")]
+pub mod rotation;
 
 use anyhow::Result;
 use blit::BlitBuffer;
@@ -80,11 +84,11 @@ lazy_static! {
 /// world.register::<Sprite>();
 ///
 /// let sprite_ref = {
-///     // Create a sprite of 2 pixels
-///     let sprite = BlitBuffer::from_buffer(&[0, MASK_COLOR], 1, Color::from_u32(MASK_COLOR));
+///     // Create a sprite of 4 pixels
+///     let sprite = BlitBuffer::from_buffer(&[0, MASK_COLOR, 0, 0], 2, MASK_COLOR);
 ///
 ///     // Load the sprite and get a reference
-///     load(sprite)?
+///     load(sprite, 1)?
 /// };
 ///
 /// // Create a new sprite entity in the ECS system
@@ -94,11 +98,15 @@ lazy_static! {
 /// # Ok(())
 /// # }
 /// ```
+#[derive(Debug, Clone)]
 pub struct Sprite {
     /// The reference to the heap allocated array of sprites.
-    pub(crate) index: usize,
+    pub(crate) reference: SpriteRef,
     /// Where on the screen the sprite needs to be rendered.
     pos: (i32, i32),
+    /// The current rotation of the sprite, it will match the nearest rotating divisor of the
+    /// loaded version.
+    rot: u16,
 }
 
 impl Component for Sprite {
@@ -116,11 +124,11 @@ impl Sprite {
     ///
     /// # fn main() -> anyhow::Result<()> {
     /// let sprite_ref = {
-    ///     // Create a sprite of 2 pixels
-    ///     let sprite = BlitBuffer::from_buffer(&[0, MASK_COLOR], 1, Color::from_u32(MASK_COLOR));
+    ///     // Create a sprite of 4 pixels
+    ///     let sprite = BlitBuffer::from_buffer(&[0, MASK_COLOR, 0, 0], 2, MASK_COLOR);
     ///
     ///     // Load the sprite and get a reference
-    ///     load(sprite)?
+    ///     load(sprite, 1)?
     /// };
     ///
     /// // Create a specs sprite from the image
@@ -128,10 +136,11 @@ impl Sprite {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn new(index: SpriteRef) -> Self {
+    pub fn new(sprite_reference: SpriteRef) -> Self {
         Self {
-            index: index.0,
+            reference: sprite_reference,
             pos: (0, 0),
+            rot: 0,
         }
     }
 
@@ -145,11 +154,47 @@ impl Sprite {
     pub fn pos(&self) -> (i32, i32) {
         self.pos
     }
+
+    /// Set the rotation in degrees of the sprite.
+    /// The rotation will attempt to match the nearest degrees of rotation divisor.
+    pub fn set_rot(&mut self, rotation: u16) {
+        self.rot = rotation % 360;
+    }
+
+    /// Get the pixel rotation as degrees.
+    pub fn rot(&self) -> u16 {
+        self.rot
+    }
+
+    /// Get the data needed for rendering this sprite.
+    pub(crate) fn render_info(&self) -> (usize, i32, i32) {
+        self.reference.render_info(self.rot)
+    }
 }
 
 /// Reference to a heap-allocated sprite.
 /// Contains the index of the vector, only this crate is allowed to access this.
-pub struct SpriteRef(pub(crate) usize);
+#[derive(Debug, Clone)]
+pub struct SpriteRef {
+    /// In how many degrees the rotation is divided.
+    rot_divisor: f64,
+    /// Array of different rotations sprite references with their position offsets.
+    sprites: Vec<(usize, i32, i32)>,
+}
+
+impl SpriteRef {
+    // Return the reference index and the offsets of the position.
+    pub(crate) fn render_info(&self, rotation: u16) -> (usize, i32, i32) {
+        let rotation_index = rotation as f64 / self.rot_divisor;
+
+        // Return the proper sprite depending on the rotation
+        *self
+            .sprites
+            .get(rotation_index as usize)
+            // Get the sprite at the index or the first if that's not valid
+            .unwrap_or(&self.sprites[0])
+    }
+}
 
 /// Array of pixels resource that can be written to from the [`RenderSystem`] system.
 ///
@@ -166,7 +211,7 @@ pub struct SpriteRef(pub(crate) usize);
 /// // Add the pixel buffer as a resource so it can be accessed from the RenderSystem later
 /// world.insert(PixelBuffer::new(WIDTH, HEIGHT));
 /// ```
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct PixelBuffer {
     pub(crate) pixels: Vec<u32>,
     pub(crate) width: usize,
@@ -206,7 +251,7 @@ impl PixelBuffer {
     }
 }
 
-/// Specs system for rendering to a buffer.
+/// Specs system for rendering sprites to a buffer.
 ///
 /// *Note*: This can only be used in conjunction with a `.with_thread_local()`
 /// function in specs and not with a normal `.with()` call.
@@ -228,11 +273,18 @@ impl<'a> System<'a> for RenderSystem {
         let width = buffer.width;
 
         for sprite_component in sprites.join() {
+            let (index, x_offset, y_offset) = sprite_component.render_info();
+
             // Get the sprite from the array
-            let sprite = &SPRITES.read().unwrap()[sprite_component.index];
+            let sprite = &SPRITES.read().unwrap()[index];
+
+            let pos = (
+                sprite_component.pos.0 + x_offset,
+                sprite_component.pos.1 + y_offset,
+            );
 
             // Draw the sprite on the buffer
-            sprite.blit(&mut buffer.pixels, width, sprite_component.pos);
+            sprite.blit(&mut buffer.pixels, width, pos);
         }
     }
 }
@@ -248,17 +300,50 @@ impl<'a> System<'a> for RenderSystem {
 /// const MASK_COLOR: u32 = 0xFF00FF;
 ///
 /// # fn main() -> anyhow::Result<()> {
-/// // Create a sprite of 2 pixels
-/// let sprite = BlitBuffer::from_buffer(&[0, MASK_COLOR], 1, Color::from_u32(MASK_COLOR));
+/// // Create a sprite of 4 pixels
+/// let sprite = BlitBuffer::from_buffer(&[0, MASK_COLOR, 0, 0], 2, MASK_COLOR);
 ///
-/// // Load the sprite and get a reference
-/// let sprite_ref = load(sprite)?;
+/// // Load the sprite in rotations of 0, 90, 180 & 270 degrees and get a reference
+/// let sprite_ref = load(sprite, 8)?;
 /// # Ok(())
 /// # }
 /// ```
-pub fn load(sprite: BlitBuffer) -> Result<SpriteRef> {
-    let mut sprites_vec = SPRITES.write().unwrap();
-    sprites_vec.push(sprite);
+pub fn load(sprite: BlitBuffer, rotations: u16) -> Result<SpriteRef> {
+    let rotations = if rotations == 0 { 1 } else { rotations };
 
-    Ok(SpriteRef(sprites_vec.len() - 1))
+    let rot_divisor = 360.0 / (rotations as f64);
+    let raw_buffer = sprite.to_raw_buffer();
+
+    // Create a rotation sprite for all rotations
+    let sprites = (0..rotations)
+        .map(|r| {
+            let (rotated_width, rotated_height, rotated) = rotsprite::rotsprite(
+                &raw_buffer,
+                &sprite.mask_color().u32(),
+                sprite.size().0 as usize,
+                r as f64 * rot_divisor,
+            )?;
+
+            let rotated_sprite =
+                BlitBuffer::from_buffer(&rotated, rotated_width as i32, sprite.mask_color());
+
+            let mut sprites_vec = SPRITES.write().unwrap();
+            sprites_vec.push(rotated_sprite);
+
+            let index = sprites_vec.len() - 1;
+
+            let x_offset = (sprite.width() - rotated_width as i32) / 2;
+            let y_offset = (sprite.height() - rotated_height as i32) / 2;
+
+            Ok((index, x_offset, y_offset))
+        })
+        .collect::<Result<Vec<_>>>()?
+        // Return the first error
+        .into_iter()
+        .collect::<_>();
+
+    Ok(SpriteRef {
+        rot_divisor,
+        sprites,
+    })
 }

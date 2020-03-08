@@ -12,6 +12,23 @@ const HEIGHT: usize = 250;
 
 const MASK_COLOR: u32 = 0xFF_00_FF;
 
+// A resource for rotating the sprite
+#[derive(Debug, Default)]
+pub struct Rotation(pub f64);
+
+// The system for rotating the sprite
+pub struct RotationSystem;
+impl<'a> System<'a> for RotationSystem {
+    type SystemData = (Read<'a, Rotation>, WriteStorage<'a, Sprite>);
+
+    fn run(&mut self, (rot, mut sprite): Self::SystemData) {
+        // Rotate the sprite
+        for (sprite,) in (&mut sprite,).join() {
+            sprite.set_rot(rot.0 as u16);
+        }
+    }
+}
+
 fn main() -> Result<()> {
     // Setup specs
     let mut world = World::new();
@@ -22,6 +39,9 @@ fn main() -> Result<()> {
     // Add the pixel buffer as a resource so it can be accessed from the RenderSystem later
     world.insert(PixelBuffer::new(WIDTH, HEIGHT));
 
+    // Add the rotation of the sprite
+    world.insert(Rotation(0.0));
+
     // Load the sprite
     let sprite_ref = {
         // Load the image using the image crate
@@ -29,8 +49,8 @@ fn main() -> Result<()> {
         // Create a sprite from it
         let sprite = blit_buffer(&img, Color::from_u32(MASK_COLOR));
 
-        // Move the sprite to the render system
-        load(sprite)?
+        // Move the sprite to the render system with 16 rotations
+        load(sprite, 16)?
     };
 
     // Create an entity with the sprite
@@ -38,6 +58,7 @@ fn main() -> Result<()> {
 
     // Setup the dispatcher with the blit system
     let mut dispatcher = DispatcherBuilder::new()
+        .with(RotationSystem, "rotation", &[])
         .with_thread_local(RenderSystem)
         .build();
 
@@ -48,11 +69,17 @@ fn main() -> Result<()> {
     };
     let mut window = Window::new("Specs Blit Example - ESC to exit", WIDTH, HEIGHT, options)?;
 
+    let mut rotation = 0.0;
     while window.is_open() && !window.is_key_down(Key::Escape) {
         {
             // Clear the buffer
             let mut buffer = world.write_resource::<PixelBuffer>();
             buffer.clear(0);
+
+            // Update the rotation
+            let mut rot_resource = world.write_resource::<Rotation>();
+            rot_resource.0 = rotation;
+            rotation += 1.0;
         }
 
         // Update specs
