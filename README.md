@@ -1,7 +1,7 @@
 # specs-blit
 2D sprite rendering extension for the [Specs ECS](https://github.com/amethyst/specs) system.
 
-<a href="https://actions-badge.atrox.dev/tversteeg/specs-blit/goto"><img src="https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Ftversteeg%2Fspecs-blit%2Fbadge&style=flat" alt="Build Status"/></a>
+![CI](https://github.com/tversteeg/specs-blit/workflows/CI/badge.svg)
 <a href="https://crates.io/crates/specs-blit"><img src="https://img.shields.io/crates/v/specs-blit.svg" alt="Version"/></a>
 <a href="https://docs.rs/specs-blit"><img src="https://img.shields.io/badge/api-rustdoc-blue.svg" alt="Rust Documentation"/></a>
 <img src="https://img.shields.io/crates/l/specs-blit.svg" alt="License"/>
