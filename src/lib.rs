@@ -51,9 +51,6 @@
 
 pub extern crate blit;
 
-#[cfg(feature = "rotation")]
-pub mod rotation;
-
 use anyhow::Result;
 use blit::BlitBuffer;
 use lazy_static::lazy_static;
