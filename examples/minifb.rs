@@ -79,7 +79,7 @@ fn main() -> Result<()> {
             // Update the rotation
             let mut rot_resource = world.write_resource::<Rotation>();
             rot_resource.0 = rotation;
-            rotation += 1.0;
+            rotation -= 1.0;
         }
 
         // Update specs

@@ -155,7 +155,15 @@ impl Sprite {
     /// Set the rotation in degrees of the sprite.
     /// The rotation will attempt to match the nearest degrees of rotation divisor.
     pub fn set_rot(&mut self, rotation: i16) {
-        self.rot = rotation % 360;
+        let mut rotation = rotation;
+        while rotation < 0 {
+            rotation += 360;
+        }
+        while rotation > 360 {
+            rotation -= 360;
+        }
+
+        self.rot = rotation;
     }
 
     /// Get the pixel rotation as degrees.
