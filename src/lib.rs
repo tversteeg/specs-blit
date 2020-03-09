@@ -106,7 +106,7 @@ pub struct Sprite {
     pos: (i32, i32),
     /// The current rotation of the sprite, it will match the nearest rotating divisor of the
     /// loaded version.
-    rot: u16,
+    rot: i16,
 }
 
 impl Component for Sprite {
@@ -157,12 +157,12 @@ impl Sprite {
 
     /// Set the rotation in degrees of the sprite.
     /// The rotation will attempt to match the nearest degrees of rotation divisor.
-    pub fn set_rot(&mut self, rotation: u16) {
+    pub fn set_rot(&mut self, rotation: i16) {
         self.rot = rotation % 360;
     }
 
     /// Get the pixel rotation as degrees.
-    pub fn rot(&self) -> u16 {
+    pub fn rot(&self) -> i16 {
         self.rot
     }
 
@@ -184,7 +184,7 @@ pub struct SpriteRef {
 
 impl SpriteRef {
     // Return the reference index and the offsets of the position.
-    pub(crate) fn render_info(&self, rotation: u16) -> (usize, i32, i32) {
+    pub(crate) fn render_info(&self, rotation: i16) -> (usize, i32, i32) {
         let rotation_index = rotation as f64 / self.rot_divisor;
 
         // Return the proper sprite depending on the rotation

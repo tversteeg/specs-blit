@@ -24,7 +24,7 @@ impl<'a> System<'a> for RotationSystem {
     fn run(&mut self, (rot, mut sprite): Self::SystemData) {
         // Rotate the sprite
         for (sprite,) in (&mut sprite,).join() {
-            sprite.set_rot(rot.0 as u16);
+            sprite.set_rot(rot.0 as i16);
         }
     }
 }
