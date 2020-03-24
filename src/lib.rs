@@ -238,6 +238,11 @@ impl PixelBuffer {
         &self.pixels
     }
 
+    /// Get the array so that it can be mutated manually.
+    pub fn pixels_mut(&mut self) -> &mut Vec<u32> {
+        &mut self.pixels
+    }
+
     /// Get the width in pixels.
     pub fn width(&self) -> usize {
         self.width
