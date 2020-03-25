@@ -54,8 +54,8 @@ pub extern crate blit;
 use anyhow::Result;
 use blit::BlitBuffer;
 use lazy_static::lazy_static;
+use rayon::prelude::*;
 use specs::prelude::*;
-
 use std::sync::RwLock;
 
 // The heap allocated array of sprites
@@ -326,6 +326,7 @@ pub fn load(sprite: BlitBuffer, rotations: u16) -> Result<SpriteRef> {
 
     // Create a rotation sprite for all rotations
     let sprites = (0..rotations)
+        .into_par_iter()
         .map(|r| {
             let (rotated_width, rotated_height, rotated) = rotsprite::rotsprite(
                 &raw_buffer,
