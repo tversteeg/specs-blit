@@ -54,7 +54,7 @@ pub extern crate blit;
 use anyhow::Result;
 use blit::BlitBuffer;
 use lazy_static::lazy_static;
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(feature = "parallel")]
 use rayon::prelude::*;
 use specs::prelude::*;
 use std::sync::RwLock;
@@ -319,7 +319,7 @@ impl<'a> System<'a> for RenderSystem {
 /// # Ok(())
 /// # }
 /// ```
-#[cfg(target_arch = "wasm32")]
+#[cfg(not(feature = "parallel"))]
 pub fn load(sprite: BlitBuffer, rotations: u16) -> Result<SpriteRef> {
     let rotations = if rotations == 0 { 1 } else { rotations };
 
@@ -361,7 +361,7 @@ pub fn load(sprite: BlitBuffer, rotations: u16) -> Result<SpriteRef> {
     })
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(feature = "parallel")]
 pub fn load(sprite: BlitBuffer, rotations: u16) -> Result<SpriteRef> {
     let rotations = if rotations == 0 { 1 } else { rotations };
 
