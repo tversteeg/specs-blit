@@ -16,7 +16,7 @@ is-it-maintained-issue-resolution = { repository = "tversteeg/specs-blit" }
 is-it-maintained-open-issues = { repository = "tversteeg/specs-blit" }
 
 [dependencies]
-anyhow = "1.0.27"
+anyhow = "1.0.28"
 blit = { version = "0.5.12", default-features = false }
 lazy_static = "1.4.0"
 rayon = "1.3.0"
@@ -24,5 +24,6 @@ rotsprite = "0.1.3"
 specs = { version = "0.16.1", features = ["specs-derive"] }
 
 [dev-dependencies]
-image = "0.23.2"
-minifb = "0.15.3"
+image = "0.23.3"
+minifb = "0.16.0"
+blit = { version = "0.5.12", features = ["image"] }

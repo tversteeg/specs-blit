@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use blit::{blit_buffer, Color};
 use minifb::*;
 use specs::prelude::*;
@@ -67,7 +67,8 @@ fn main() -> Result<()> {
         scale: Scale::X2,
         ..WindowOptions::default()
     };
-    let mut window = Window::new("Specs Blit Example - ESC to exit", WIDTH, HEIGHT, options)?;
+    let mut window = Window::new("Specs Blit Example - ESC to exit", WIDTH, HEIGHT, options)
+        .map_err(|err| anyhow!("{}", err))?;
 
     let mut rotation = 0.0;
     while window.is_open() && !window.is_key_down(Key::Escape) {
