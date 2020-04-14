@@ -50,6 +50,7 @@
 //! ```
 
 pub extern crate blit;
+pub extern crate specs;
 
 use anyhow::Result;
 use blit::BlitBuffer;
