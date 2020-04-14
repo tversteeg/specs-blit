@@ -54,6 +54,7 @@ pub extern crate blit;
 use anyhow::Result;
 use blit::BlitBuffer;
 use lazy_static::lazy_static;
+#[cfg(not(target_arch = "wasm32"))]
 use rayon::prelude::*;
 use specs::prelude::*;
 use std::sync::RwLock;
@@ -318,6 +319,49 @@ impl<'a> System<'a> for RenderSystem {
 /// # Ok(())
 /// # }
 /// ```
+#[cfg(target_arch = "wasm32")]
+pub fn load(sprite: BlitBuffer, rotations: u16) -> Result<SpriteRef> {
+    let rotations = if rotations == 0 { 1 } else { rotations };
+
+    let rot_divisor = 360.0 / (rotations as f64);
+    let raw_buffer = sprite.to_raw_buffer();
+
+    // Create a rotation sprite for all rotations
+    let sprites = (0..rotations)
+        .into_iter()
+        .map(|r| {
+            let (rotated_width, rotated_height, rotated) = rotsprite::rotsprite(
+                &raw_buffer,
+                &sprite.mask_color().u32(),
+                sprite.size().0 as usize,
+                r as f64 * rot_divisor,
+            )?;
+
+            let rotated_sprite =
+                BlitBuffer::from_buffer(&rotated, rotated_width as i32, sprite.mask_color());
+
+            let mut sprites_vec = SPRITES.write().unwrap();
+            sprites_vec.push(rotated_sprite);
+
+            let index = sprites_vec.len() - 1;
+
+            let x_offset = (sprite.width() - rotated_width as i32) / 2;
+            let y_offset = (sprite.height() - rotated_height as i32) / 2;
+
+            Ok((index, x_offset, y_offset))
+        })
+        .collect::<Result<Vec<_>>>()?
+        // Return the first error
+        .into_iter()
+        .collect::<_>();
+
+    Ok(SpriteRef {
+        rot_divisor,
+        sprites,
+    })
+}
+
+#[cfg(not(target_arch = "wasm32"))]
 pub fn load(sprite: BlitBuffer, rotations: u16) -> Result<SpriteRef> {
     let rotations = if rotations == 0 { 1 } else { rotations };
 
