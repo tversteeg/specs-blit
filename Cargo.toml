@@ -1,6 +1,6 @@
 [package]
 name = "specs-blit"
-version = "0.4.0"
+version = "0.4.1"
 authors = ["Thomas Versteeg <thomasversteeg@gmx.com>"]
 edition = "2018"
 license = "GPL-3.0"
