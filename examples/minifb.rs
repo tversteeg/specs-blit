@@ -2,7 +2,7 @@ use anyhow::{anyhow, Result};
 use blit::{blit_buffer, Color};
 use minifb::*;
 use specs::prelude::*;
-use specs_blit::{load, PixelBuffer, RenderSystem, Sprite};
+use specs_blit::{PixelBuffer, RenderSystem, Sprite};
 
 use std::thread::sleep;
 use std::time::Duration;
@@ -50,7 +50,7 @@ fn main() -> Result<()> {
         let sprite = blit_buffer(&img, Color::from_u32(MASK_COLOR));
 
         // Move the sprite to the render system with 16 rotations
-        load(sprite, 16)?
+        specs_blit::load_rotations_range(sprite, 16, (-270.0, 90.0))?
     };
 
     // Create an entity with the sprite
@@ -80,7 +80,7 @@ fn main() -> Result<()> {
             // Update the rotation
             let mut rot_resource = world.write_resource::<Rotation>();
             rot_resource.0 = rotation;
-            rotation -= 1.0;
+            rotation += 1.0;
         }
 
         // Update specs

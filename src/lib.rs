@@ -315,16 +315,52 @@ impl<'a> System<'a> for RenderSystem {
 /// // Create a sprite of 4 pixels
 /// let sprite = BlitBuffer::from_buffer(&[0, MASK_COLOR, 0, 0], 2, MASK_COLOR);
 ///
-/// // Load the sprite in rotations of 0, 90, 180 & 270 degrees and get a reference
-/// let sprite_ref = load(sprite, 8)?;
+/// // Load the sprite and get a reference
+/// let sprite_ref = load(sprite)?;
+/// # Ok(())
+/// # }
+/// ```
+pub fn load(sprite: BlitBuffer) -> Result<SpriteRef> {
+    load_rotations(sprite, 1)
+}
+
+/// Load a sprite buffer and place it onto the heap with a set amount of rotations.
+///
+/// Calls `load_rotations_range` with a range of `(0.0, 360.0)`.
+///
+/// Returns an index that can be used in sprite components.
+pub fn load_rotations(sprite: BlitBuffer, rotations: u16) -> Result<SpriteRef> {
+    load_rotations_range(sprite, rotations, (0.0, 360.0))
+}
+
+/// Load a sprite buffer and place it onto the heap with a set amount of rotations.
+///
+/// Returns an index that can be used in sprite components.
+///
+/// ```rust
+/// use blit::{BlitBuffer, Color};
+/// use specs_blit::load;
+///
+/// const MASK_COLOR: u32 = 0xFF00FF;
+///
+/// # fn main() -> anyhow::Result<()> {
+/// // Create a sprite of 4 pixels
+/// let sprite = BlitBuffer::from_buffer(&[0, MASK_COLOR, 0, 0], 2, MASK_COLOR);
+///
+/// // Load the sprite in rotations of -15, 0, 15 degrees and get a reference
+/// let sprite_ref = load_rotations_range(sprite, 3, (-15.0, 15.0))?;
 /// # Ok(())
 /// # }
 /// ```
 #[cfg(not(feature = "parallel"))]
-pub fn load(sprite: BlitBuffer, rotations: u16) -> Result<SpriteRef> {
+pub fn load_rotations_range(
+    sprite: BlitBuffer,
+    rotations: u16,
+    range: (f64, f64),
+) -> Result<SpriteRef> {
     let rotations = if rotations == 0 { 1 } else { rotations };
 
-    let rot_divisor = 360.0 / (rotations as f64);
+    let rot_divisor = (range.1 - range.0) / (rotations as f64);
     let raw_buffer = sprite.to_raw_buffer();
 
     // Create a rotation sprite for all rotations
@@ -335,7 +371,7 @@ pub fn load(sprite: BlitBuffer, rotations: u16) -> Result<SpriteRef> {
                 &raw_buffer,
                 &sprite.mask_color().u32(),
                 sprite.size().0 as usize,
-                r as f64 * rot_divisor,
+                range.0 + (r as f64 * rot_divisor),
             )?;
 
             let rotated_sprite =
@@ -363,10 +399,14 @@ pub fn load(sprite: BlitBuffer, rotations: u16) -> Result<SpriteRef> {
 }
 
 #[cfg(feature = "parallel")]
-pub fn load(sprite: BlitBuffer, rotations: u16) -> Result<SpriteRef> {
+pub fn load_rotations_range(
+    sprite: BlitBuffer,
+    rotations: u16,
+    range: (f64, f64),
+) -> Result<SpriteRef> {
     let rotations = if rotations == 0 { 1 } else { rotations };
 
-    let rot_divisor = 360.0 / (rotations as f64);
+    let rot_divisor = (range.1 - range.0) / (rotations as f64);
     let raw_buffer = sprite.to_raw_buffer();
 
     // Create a rotation sprite for all rotations
@@ -377,7 +417,7 @@ pub fn load(sprite: BlitBuffer, rotations: u16) -> Result<SpriteRef> {
                 &raw_buffer,
                 &sprite.mask_color().u32(),
                 sprite.size().0 as usize,
-                r as f64 * rot_divisor,
+                range.0 + (r as f64 * rot_divisor),
             )?;
 
             let rotated_sprite =
@@ -402,4 +442,11 @@ pub fn load(sprite: BlitBuffer, rotations: u16) -> Result<SpriteRef> {
         rot_divisor,
         sprites,
     })
+}
+
+/// Delete all cached buffers.
+///
+/// Marked unsafe because it will invalidate all sprite references.
+pub unsafe fn clear_all() {
+    SPRITES.write().unwrap().clear();
 }
