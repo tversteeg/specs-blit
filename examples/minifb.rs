@@ -50,7 +50,7 @@ fn main() -> Result<()> {
         let sprite = blit_buffer(&img, Color::from_u32(MASK_COLOR));
 
         // Move the sprite to the render system with 16 rotations
-        specs_blit::load_rotations_range(sprite, 16, (-270.0, 90.0))?
+        specs_blit::load_rotations_range(sprite, 16, (-270, 90))?
     };
 
     // Create an entity with the sprite

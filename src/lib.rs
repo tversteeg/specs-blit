@@ -32,7 +32,7 @@
 //!         let sprite = BlitBuffer::from_buffer(&[0, MASK_COLOR, 0, 0], 2, MASK_COLOR);
 //!
 //!         // Load the sprite and get a reference
-//!         load(sprite, 1)?
+//!         load(sprite)?
 //!     };
 //!
 //!     // Create a new sprite entity in the ECS system
@@ -87,7 +87,7 @@ lazy_static! {
 ///     let sprite = BlitBuffer::from_buffer(&[0, MASK_COLOR, 0, 0], 2, MASK_COLOR);
 ///
 ///     // Load the sprite and get a reference
-///     load(sprite, 1)?
+///     load(sprite)?
 /// };
 ///
 /// // Create a new sprite entity in the ECS system
@@ -127,7 +127,7 @@ impl Sprite {
     ///     let sprite = BlitBuffer::from_buffer(&[0, MASK_COLOR, 0, 0], 2, MASK_COLOR);
     ///
     ///     // Load the sprite and get a reference
-    ///     load(sprite, 1)?
+    ///     load(sprite)?
     /// };
     ///
     /// // Create a specs sprite from the image
@@ -183,6 +183,8 @@ impl Sprite {
 /// Contains the index of the vector, only this crate is allowed to access this.
 #[derive(Debug, Clone)]
 pub struct SpriteRef {
+    /// Start point of the rotation.
+    rot_range_start: i16,
     /// In how many degrees the rotation is divided.
     rot_divisor: f64,
     /// Array of different rotations sprite references with their position offsets.
@@ -192,7 +194,7 @@ pub struct SpriteRef {
 impl SpriteRef {
     // Return the reference index and the offsets of the position.
     pub(crate) fn render_info(&self, rotation: i16) -> (usize, i32, i32) {
-        let rotation_index = rotation as f64 / self.rot_divisor;
+        let rotation_index = (((rotation - self.rot_range_start) % 360) as f64) / self.rot_divisor;
 
         // Return the proper sprite depending on the rotation
         *self
@@ -330,7 +332,7 @@ pub fn load(sprite: BlitBuffer) -> Result<SpriteRef> {
 ///
 /// Returns an index that can be used in sprite components.
 pub fn load_rotations(sprite: BlitBuffer, rotations: u16) -> Result<SpriteRef> {
-    load_rotations_range(sprite, rotations, (0.0, 360.0))
+    load_rotations_range(sprite, rotations, (0, 360))
 }
 
 /// Load a sprite buffer and place it onto the heap with a set amount of rotations.
@@ -356,11 +358,11 @@ pub fn load_rotations(sprite: BlitBuffer, rotations: u16) -> Result<SpriteRef> {
 pub fn load_rotations_range(
     sprite: BlitBuffer,
     rotations: u16,
-    range: (f64, f64),
+    range: (i16, i16),
 ) -> Result<SpriteRef> {
     let rotations = if rotations == 0 { 1 } else { rotations };
 
-    let rot_divisor = (range.1 - range.0) / (rotations as f64);
+    let rot_divisor = (range.1 - range.0) as f64 / (rotations as f64);
     let raw_buffer = sprite.to_raw_buffer();
 
     // Create a rotation sprite for all rotations
@@ -371,7 +373,7 @@ pub fn load_rotations_range(
                 &raw_buffer,
                 &sprite.mask_color().u32(),
                 sprite.size().0 as usize,
-                range.0 + (r as f64 * rot_divisor),
+                range.0 as f64 + (r as f64 * rot_divisor),
             )?;
 
             let rotated_sprite =
@@ -393,6 +395,7 @@ pub fn load_rotations_range(
         .collect::<_>();
 
     Ok(SpriteRef {
+        rot_range_start: range.0,
         rot_divisor,
         sprites,
     })
@@ -402,11 +405,11 @@ pub fn load_rotations_range(
 pub fn load_rotations_range(
     sprite: BlitBuffer,
     rotations: u16,
-    range: (f64, f64),
+    range: (i16, i16),
 ) -> Result<SpriteRef> {
     let rotations = if rotations == 0 { 1 } else { rotations };
 
-    let rot_divisor = (range.1 - range.0) / (rotations as f64);
+    let rot_divisor = (range.1 - range.0) as f64 / (rotations as f64);
     let raw_buffer = sprite.to_raw_buffer();
 
     // Create a rotation sprite for all rotations
@@ -417,7 +420,7 @@ pub fn load_rotations_range(
                 &raw_buffer,
                 &sprite.mask_color().u32(),
                 sprite.size().0 as usize,
-                range.0 + (r as f64 * rot_divisor),
+                range.0 as f64 + (r as f64 * rot_divisor),
             )?;
 
             let rotated_sprite =
@@ -439,6 +442,7 @@ pub fn load_rotations_range(
         .collect::<_>();
 
     Ok(SpriteRef {
+        rot_range_start: range.0,
         rot_divisor,
         sprites,
     })
