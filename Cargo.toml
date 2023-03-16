@@ -20,7 +20,7 @@ default = ["parallel"]
 parallel = ["rayon", "specs/parallel"]
 
 [dependencies]
-anyhow = "1.0.28"
+anyhow = "1.0.69"
 blit = { version = "0.5.12", default-features = false }
 lazy_static = "1.4.0"
 rotsprite = "0.1.3"
